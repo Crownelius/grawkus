@@ -55,7 +55,7 @@ const ECC_HOOK_TAG = '__ecc__';
  * History:
  *   '1.0.0' — initial bundle (33 skills, 16 agents, 3 commands, flat rules)
  *   '2.0.0' — refreshed from upstream 2.0.0-rc.1
- *             (228 skills, 60 agents, 75 commands, 19 language rule subdirs;
+ *             (228 skills, 60 agents, 81 commands, 18 language rule subdirs;
  *              adds config-protection + simplified GateGuard hooks)
  *   '2.1.0' — adds quality-gate + format-typecheck-hint hooks (M1 leftovers)
  */

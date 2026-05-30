@@ -119,10 +119,10 @@ function collectTraceRefs(traceDir) {
         stack.push(full);
       } else if (entry.name === 'summary.json' || entry.name === 'trace.jsonl') {
         refs.push({
-          kind: entry.name === 'trace.jsonl' ? 'cawdex-tool-trace' : 'cawdex-summary',
+          kind: entry.name === 'trace.jsonl' ? 'grawkus-tool-trace' : 'grawkus-summary',
           path: full,
           contentType: entry.name.endsWith('.jsonl') ? 'application/jsonl' : 'application/json',
-          description: `Cawdex ${entry.name}`,
+          description: `Grawkus ${entry.name}`,
         });
       }
     }
@@ -562,13 +562,13 @@ function collectGitArtifactRefs(workdir, artifactRoot) {
 
   const diff = buildWorktreePatch(workdir);
   if (diff.trim()) {
-    const patchPath = join(artifactRoot, 'cawdex.patch');
+    const patchPath = join(artifactRoot, 'grawkus.patch');
     writeFileSync(patchPath, redact(diff), 'utf8');
     refs.push({
       kind: 'patch',
       path: patchPath,
       contentType: 'text/x-diff',
-      description: 'Redacted git diff after Cawdex run.',
+      description: 'Redacted git diff after Grawkus run.',
     });
   }
 
@@ -584,7 +584,7 @@ function collectGitArtifactRefs(workdir, artifactRoot) {
       kind: 'git-status',
       path: statusPath,
       contentType: 'text/plain',
-      description: 'Redacted git status after Cawdex run.',
+      description: 'Redacted git status after Grawkus run.',
     });
   }
 
@@ -632,7 +632,7 @@ try {
 }
 
 if (payload.mode !== 'task') {
-  fail('unsupported_capability', 'Cawdex KBench adapter currently supports task mode only.');
+  fail('unsupported_capability', 'Grawkus KBench adapter currently supports task mode only.');
   process.exit(0);
 }
 
@@ -646,24 +646,24 @@ const profile = profileForBenchmark(benchmark);
 const prompt = `/benchmark ${profile} ${instruction}`;
 const workdir = config.workDir || env.workdir || env.repoPath || taskEnv.workdir || taskEnv.repoPath || process.cwd();
 const artifactRoot = config.storeDir
-  || process.env.CAWDEX_KBENCH_ARTIFACT_DIR
+  || process.env.GRAWKUS_KBENCH_ARTIFACT_DIR || process.env.CAWDEX_KBENCH_ARTIFACT_DIR
   || (() => {
-    const dir = join(tmpdir(), `cawdex-kbench-${process.pid}-${Date.now()}`);
+    const dir = join(tmpdir(), `grawkus-kbench-${process.pid}-${Date.now()}`);
     mkdirSync(dir, { recursive: true });
     return dir;
   })();
 mkdirSync(artifactRoot, { recursive: true });
 
-const stdoutPath = join(artifactRoot, 'cawdex.stdout.txt');
-const stderrPath = join(artifactRoot, 'cawdex.stderr.txt');
+const stdoutPath = join(artifactRoot, 'grawkus.stdout.txt');
+const stderrPath = join(artifactRoot, 'grawkus.stderr.txt');
 const instructionPath = join(artifactRoot, 'instruction.txt');
-const traceDir = join(artifactRoot, 'cawdex-trace');
+const traceDir = join(artifactRoot, 'grawkus-trace');
 mkdirSync(dirname(stdoutPath), { recursive: true });
 writeFileSync(instructionPath, redact(instruction), 'utf8');
 
-const commandParts = splitCommand(process.env.CAWDEX_KBENCH_COMMAND || process.env.CAWDEX_KBENCH_COMMAND || 'cawdex');
+const commandParts = splitCommand(process.env.GRAWKUS_KBENCH_COMMAND || process.env.CAWDEX_KBENCH_COMMAND || process.env.GRAWKUS_KBENCH_COMMAND || process.env.CAWDEX_KBENCH_COMMAND || 'cawdex');
 if (!commandParts.length) {
-  fail('invalid_adapter', 'CAWDEX_KBENCH_COMMAND resolved to an empty command.');
+  fail('invalid_adapter', 'GRAWKUS_KBENCH_COMMAND resolved to an empty command.');
   process.exit(0);
 }
 
@@ -671,7 +671,7 @@ const [command, ...prefixArgs] = commandParts;
 const args = [
   ...prefixArgs,
   '--prompt', prompt,
-  '--perm', process.env.CAWDEX_KBENCH_PERMISSION || 'yolo',
+  '--perm', process.env.GRAWKUS_KBENCH_PERMISSION || process.env.CAWDEX_KBENCH_PERMISSION || 'yolo',
   '--output-format', 'text',
   '--benchmark-trace-dir', traceDir,
 ];
@@ -679,15 +679,15 @@ if (config.modelName) args.push('--model', String(config.modelName));
 if (config.temperature !== undefined) args.push('--temperature', String(config.temperature));
 if (config.baseUrl) args.push('--base-url', String(config.baseUrl));
 if (config.apiKeyEnv) args.push('--api-key-env', String(config.apiKeyEnv));
-if (process.env.CAWDEX_KBENCH_EXTRA_ARGS) {
-  args.push(...splitCommand(process.env.CAWDEX_KBENCH_EXTRA_ARGS));
+if (process.env.GRAWKUS_KBENCH_EXTRA_ARGS || process.env.CAWDEX_KBENCH_EXTRA_ARGS) {
+  args.push(...splitCommand(process.env.GRAWKUS_KBENCH_EXTRA_ARGS || process.env.CAWDEX_KBENCH_EXTRA_ARGS));
 }
 
 const childEnv = {
   ...process.env,
-  CAWDEX_BENCHMARK_TRACE: '1',
-  CAWDEX_BENCHMARK_TRACE_DIR: traceDir,
-  CAWDEX_BASH_TIMEOUT_MS: process.env.CAWDEX_BASH_TIMEOUT_MS || '300000',
+  GRAWKUS_BENCHMARK_TRACE: '1',
+  GRAWKUS_BENCHMARK_TRACE_DIR: traceDir,
+  GRAWKUS_BASH_TIMEOUT_MS: process.env.GRAWKUS_BASH_TIMEOUT_MS || process.env.CAWDEX_BASH_TIMEOUT_MS || '300000',
 };
 for (const [key, value] of Object.entries(env.envVars || {})) {
   if (typeof value === 'string') childEnv[key] = value;
@@ -717,11 +717,11 @@ const traceSummary = compactTraceSummary(readLatestTraceSummary(traceDir));
 const workdirUsed = existsSync(workdir) ? workdir : process.cwd();
 const gitRefs = collectGitArtifactRefs(workdirUsed, artifactRoot);
 const stdoutLines = stdout.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
-const finalText = stdoutLines.at(-1) || stdout.trim() || (ok ? 'Cawdex completed.' : 'Cawdex produced no stdout.');
+const finalText = stdoutLines.at(-1) || stdout.trim() || (ok ? 'Grawkus completed.' : 'Grawkus produced no stdout.');
 const artifacts = [
   { kind: 'instruction', path: instructionPath, contentType: 'text/plain', description: 'KBench task instruction passed to Cawdex.' },
-  { kind: 'stdout', path: stdoutPath, contentType: 'text/plain', description: 'Cawdex stdout.' },
-  { kind: 'stderr', path: stderrPath, contentType: 'text/plain', description: 'Cawdex stderr.' },
+  { kind: 'stdout', path: stdoutPath, contentType: 'text/plain', description: 'Grawkus stdout.' },
+  { kind: 'stderr', path: stderrPath, contentType: 'text/plain', description: 'Grawkus stderr.' },
   ...gitRefs,
   ...traceRefs,
 ];
@@ -735,7 +735,7 @@ const output = {
   artifacts,
   trace: traceRefs.length ? { native: traceRefs } : undefined,
   benchmarkResult: {
-    mode: 'cawdex-kbench',
+    mode: 'grawkus-kbench',
     benchmark,
     profile,
     exitCode,
@@ -746,7 +746,7 @@ const output = {
     usage: traceSummary?.usage,
   },
   error: ok ? undefined : {
-    message: truncate(stderr.trim() || stdout.trim() || result.error?.message || `Cawdex exited with code ${exitCode}`, 2000),
+    message: truncate(stderr.trim() || stdout.trim() || result.error?.message || `Grawkus exited with code ${exitCode}`, 2000),
   },
 };
 

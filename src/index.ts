@@ -79,7 +79,7 @@ import {
 import { buildDoctorReport, formatDoctorReport, runDoctorCli } from './doctor.js';
 import { printRules } from './rules.js';
 import { buildOrchestrationPrompt, runParallel, mergeResults, printOrchestrationStatus, type SubAgent } from './orchestration.js';
-import { printBanner as printThemedBanner, theme, sym, formatDuration, installScreenReaderDispatch, uninstallScreenReaderDispatch, setPalette, getPaletteId, listPalettes, resolvePaletteId, PALETTES, expandLastThinking } from './theme.js';
+import { printBanner as printThemedBanner, theme, sym, formatDuration, installScreenReaderDispatch, uninstallScreenReaderDispatch, setPalette, getPaletteId, listPalettes, resolvePaletteId, PALETTES, expandLastThinking, printForgeHeader } from './theme.js';
 import { saveExport, type ExportFormat } from './export.js';
 // New feature modules
 import { buildVerifyPrompt, saveCheckpoint, listCheckpoints, restoreCheckpoint } from './verification.js';
@@ -4125,6 +4125,19 @@ async function main(): Promise<void> {
   // non-interactive mode — banners are noise when a harness is parsing
   // our stdout.
   const themeMode = config.theme || 'full';
+
+  // Grawkus Forge header — sturdy dwarf ASCII art with forge/workshop feel.
+  // Disabled in non-interactive, CI, screen-reader, and minimal modes.
+  // Must also respect isTTY (pipe/redirect detection).
+  if (
+    !nonInteractive &&
+    themeMode !== 'minimal' &&
+    !config.voice?.accessibility?.screenReader &&
+    process.stdout.isTTY
+  ) {
+    printForgeHeader();
+  }
+
   if (nonInteractive) {
     // intentionally no output
   } else if (themeMode === 'full') {

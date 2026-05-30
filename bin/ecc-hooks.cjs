@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
- * ECC-native hook dispatcher for Cawdex.
+ * ECC-native hook dispatcher for Grawkus.
  *
- * Reads Cawdex's hook env vars (CAWDEX_EVENT, CAWDEX_TOOL,
- * CAWDEX_TOOL_INPUT, CAWDEX_TOOL_OUTPUT) and runs a single named check.
+ * Reads Grawkus's hook env vars (GRAWKUS_EVENT, GRAWKUS_TOOL,
+ * GRAWKUS_TOOL_INPUT, GRAWKUS_TOOL_OUTPUT) and runs a single named check.
  *
  * Exit codes:
  *   0  — allow (PreToolUse) or success (PostToolUse)
@@ -26,7 +26,7 @@ const checkName = process.argv[2] || '';
 // don't carry input, like SessionStart); a NON-empty payload that
 // fails to parse is treated as a security event and the hook
 // blocks. Fail closed > fail open.
-const rawToolInput = process.env.CAWDEX_TOOL_INPUT || '';
+const rawToolInput = process.env.GRAWKUS_TOOL_INPUT || process.env.CAWDEX_TOOL_INPUT || '';
 let toolInput = {};
 if (rawToolInput.length > 0) {
   try {
@@ -37,8 +37,8 @@ if (rawToolInput.length > 0) {
   }
 }
 
-const tool = process.env.CAWDEX_TOOL || '';
-const cwd = process.env.CAWDEX_CWD || process.cwd();
+const tool = process.env.GRAWKUS_TOOL || process.env.CAWDEX_TOOL || '';
+const cwd = process.env.GRAWKUS_CWD || process.env.CAWDEX_CWD || process.cwd();
 
 // ── Helpers ─────────────────────────────────────────────
 function bashCommand() {
@@ -174,7 +174,7 @@ const checks = {
 
   /**
    * GateGuard — surface "first Edit/Write to this file" as a hint or a
-   * block, depending on CAWDEX_GATEGUARD_MODE.
+   * block, depending on GRAWKUS_GATEGUARD_MODE.
    *
    * Modes:
    *   warn  (default) — print the investigation hint, allow the edit.
@@ -197,9 +197,9 @@ const checks = {
    *     succeeded on retry, so the block was friction without
    *     proportional safety benefit.
    *   - Strict users who actually want block-first can opt back in
-   *     via CAWDEX_GATEGUARD_MODE=block.
+   *     via GRAWKUS_GATEGUARD_MODE=block.
    *
-   * State lives at ~/.cawdex/state/gateguard/<sessionId>.json
+   * State lives at ~/.grawkus/state/gateguard/<sessionId>.json
    * even in warn mode — tracking per-file means we only emit the hint
    * once per file per session (don't nag).
    *
@@ -210,12 +210,12 @@ const checks = {
   'gateguard': () => {
     // ── Disable knob ─────────────────────────────────────
     // Documented in the hint/block message below.
-    const disableEnv = (process.env.CAWDEX_GATEGUARD || '').trim();
+    const disableEnv = (process.env.GRAWKUS_GATEGUARD || process.env.CAWDEX_GATEGUARD || '').trim();
     if (/^(off|false|0|no|disabled?)$/i.test(disableEnv)) return ok();
 
     // ── Mode selection ───────────────────────────────────
     // Pick warn (new default) vs block (legacy strict) vs off.
-    const modeEnv = (process.env.CAWDEX_GATEGUARD_MODE || 'warn').toLowerCase().trim();
+    const modeEnv = (process.env.GRAWKUS_GATEGUARD_MODE || process.env.CAWDEX_GATEGUARD_MODE || 'warn').toLowerCase().trim();
     if (modeEnv === 'off') return ok();
     const strict = modeEnv === 'block' || modeEnv === 'strict';
 
@@ -223,10 +223,10 @@ const checks = {
     // Permission mode 'yolo' is the user's explicit "trust the agent,
     // skip the speed bumps" contract. GateGuard's investigate-first
     // intervention directly contradicts that — letting it fire in
-    // yolo would mean the safest setting in cawdex is more
+    // yolo would mean the safest setting in grawkus is more
     // pedantic than the most-cautious, which is backwards. Silent
     // no-op so the user gets the unblocked flow they asked for.
-    const perm = (process.env.CAWDEX_PERMISSION_MODE || '').toLowerCase().trim();
+    const perm = (process.env.GRAWKUS_PERMISSION_MODE || process.env.CAWDEX_PERMISSION_MODE || '').toLowerCase().trim();
     if (perm === 'yolo') return ok();
 
     const fs = require('fs');
@@ -256,9 +256,9 @@ const checks = {
     // model-controlled file paths). Allow only [A-Za-z0-9_-], length
     // <=64. Anything else falls back to "unknown" — degraded UX
     // (gateguard tracking won't persist), not a security breach.
-    const rawSessionId = process.env.CAWDEX_SESSION_ID || '';
+    const rawSessionId = process.env.GRAWKUS_SESSION_ID || process.env.CAWDEX_SESSION_ID || '';
     const sessionId = /^[A-Za-z0-9_-]{1,64}$/.test(rawSessionId) ? rawSessionId : 'unknown';
-    const stateDir = pathMod.join(os.homedir(), '.cawdex', 'state', 'gateguard');
+    const stateDir = pathMod.join(os.homedir(), '.grawkus', 'state', 'gateguard');
     const stateFile = pathMod.join(stateDir, `${sessionId}.json`);
 
     // GC: drop any state files older than 24h. Best-effort, never throws.
@@ -300,7 +300,7 @@ const checks = {
         `First Edit/Write to ${targetPath} this session. Before proceeding, ` +
         `investigate: (1) Read the file. (2) Grep for importers. ` +
         `(3) If schema/type, check existing data. After investigating, ` +
-        `retry the edit. Set CAWDEX_GATEGUARD_MODE=warn to switch ` +
+        `retry the edit. Set GRAWKUS_GATEGUARD_MODE=warn to switch ` +
         `to non-blocking hints, or =off to disable. /perm yolo also bypasses.`,
       );
     }
@@ -308,7 +308,7 @@ const checks = {
     process.stderr.write(
       `[ECC hint] first edit to ${targetPath} this session — make sure ` +
       `you've read it + checked for callers. (set ` +
-      `CAWDEX_GATEGUARD_MODE=block to enforce, =off to silence)\n`,
+      `GRAWKUS_GATEGUARD_MODE=block to enforce, =off to silence)\n`,
     );
     return ok();
   },
@@ -389,14 +389,14 @@ const checks = {
 
   /**
    * Session-end format/typecheck reminder. PostToolUse for now (since
-   * cawdex doesn't have a Stop hook event yet). Fires once per
+   * grawkus doesn't have a Stop hook event yet). Fires once per
    * tool call but the body batches reminders rather than spam each one.
    *
    * Goal: surface "you should run `npm run typecheck` (or equivalent)
    * before considering this session done" at the end of substantial
    * work. Detects the right command via package.json scripts.
    *
-   * Tracks per-session state at ~/.cawdex/state/quality-hint/<id>.json
+   * Tracks per-session state at ~/.grawkus/state/quality-hint/<id>.json
    * so we only nudge once per session (per project).
    */
   'format-typecheck-hint': () => {
@@ -409,9 +409,9 @@ const checks = {
     const fs = require('fs');
     const pathMod = require('path');
     const os = require('os');
-    const rawSessionId = process.env.CAWDEX_SESSION_ID || '';
+    const rawSessionId = process.env.GRAWKUS_SESSION_ID || process.env.CAWDEX_SESSION_ID || '';
     const sessionId = /^[A-Za-z0-9_-]{1,64}$/.test(rawSessionId) ? rawSessionId : 'unknown';
-    const stateDir = pathMod.join(os.homedir(), '.cawdex', 'state', 'quality-hint');
+    const stateDir = pathMod.join(os.homedir(), '.grawkus', 'state', 'quality-hint');
     const stateFile = pathMod.join(stateDir, `${sessionId}.json`);
 
     // Already nudged this session — silent

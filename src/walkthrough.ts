@@ -27,7 +27,7 @@ Cover:
   Ollama, LM Studio, DeepSeek.
 - Local-first: your config, sessions, and learned patterns live in
   \`~/.grawkus/\`. No telemetry.
-- Bundled everything-claude-code (ECC) library: 33 skills, 16 agents, 9
+- Bundled everything-claude-code (ECC) library: 228 skills, 16 agents, 9
   workflow commands, 7 language rule sets, 5 security hooks. Auto-installed.
 - Then ask: "Want me to show you the modes, or jump straight into doing a
   task?"
@@ -72,7 +72,7 @@ type \`/ecc-tdd\` — \`/tdd\` already gives them the ECC version.
 - \`/learn\` — extract patterns from this conversation into instincts
 - \`/instincts\` — show learned instincts (confidence-scored, decay over time)
 - \`/evolve\` — promote high-confidence instincts into reusable skills
-- \`/skills\` — list ALL skills (includes the 33 ECC skills)
+- \`/skills\` — list ALL skills (includes the 228 ECC skills)
 - \`/skill-create\` — distill a new skill from git history
 - \`/checkpoint\`, \`/checkpoints\` — save/restore conversation checkpoints
 

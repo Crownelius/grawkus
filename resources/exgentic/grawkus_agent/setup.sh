@@ -7,7 +7,7 @@ if command -v grawkus >/dev/null 2>&1; then
 fi
 
 if command -v grawkus >/dev/null 2>&1; then
-    echo "legacy grawkus alias already available on PATH"
+    echo "legacy cawdex alias already available on PATH"
     exit 0
 fi
 

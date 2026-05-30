@@ -2,7 +2,7 @@
 
 Every command Grawkus exposes, organized by purpose. Three surfaces:
 
-1. **Shell command** — what you type at your OS terminal (`grawkus`; `grawkus` remains a legacy alias)
+1. **Shell command** — what you type at your OS terminal (`grawkus`; `cawdex` remains a legacy alias)
 2. **Slash commands** — what you type inside the REPL once it's running
 3. **Tools** — what the underlying LLM calls automatically; not invoked by you
 
@@ -12,7 +12,7 @@ If you're new, run `grawkus` then type `/walkthrough` for an agent-led tour.
 
 ## 1. Shell invocation
 
-After `npm install -g grawkus`, you have both the primary `grawkus` command and the legacy `grawkus` alias:
+After `npm install -g grawkus`, you have both the primary `grawkus` command and the legacy `cawdex` alias:
 
 ```bash
 grawkus
@@ -211,7 +211,7 @@ The legacy per-language slash commands (`/ts-review`, `/py-review`, `/go-review`
 
 ### 2.15 Skills & patterns
 
-Skills are reusable prompt templates. The 33 ECC skills are bundled; you can create your own.
+Skills are reusable prompt templates. The 228 ECC skills are bundled; you can create your own.
 
 | Command | What it does |
 |---|---|
@@ -394,7 +394,7 @@ Any tool name you see in error output other than these (e.g. `web_search_exa`, `
 
 ## 4. Environment variables
 
-These affect the REPL's runtime behavior. Set in your shell before launching `grawkus` (`grawkus` remains a legacy alias).
+These affect the REPL's runtime behavior. Set in your shell before launching `grawkus` (`cawdex` remains a legacy alias).
 
 For env-built provider config, `GRAWKUS_*` variables cover provider, base URL, model, fallback model, token/turn/context limits, temperature, permission, memory, theme, thinking, reasoning effort, and per-run overrides.
 
@@ -445,7 +445,7 @@ For env-built provider config, `GRAWKUS_*` variables cover provider, base URL, m
 | `GRAWKUS_BENCHMARK_MEMORY` | `1` | Set `0` to disable relevant MemPalace memories in `benchmark_context`. Remembered facts are always framed as hypotheses and must be verified against current task files and verifier output. |
 | `GRAWKUS_MIN_TOOL_CALLS_BEFORE_DONE` | `2` in benchmark, `1` otherwise | Non-interactive empty-engagement guard; set `0` to allow immediate no-tool final answers. |
 | `GRAWKUS_API_KEY_ENV` | (unset) | Name of an env var whose value should be used as the per-run API key; used by `--api-key-env`. |
-| `GRAWKUS_INSTALL_SPEC` | `grawkus@latest` | Terminal-Bench adapter npm install spec; pin to a version, tag, or tarball for reproducibility. If `grawkus` or legacy `grawkus` is already on `PATH`, setup skips network install. |
+| `GRAWKUS_INSTALL_SPEC` | `grawkus@latest` | Terminal-Bench adapter npm install spec; pin to a version, tag, or tarball for reproducibility. If `grawkus` or legacy `cawdex` is already on `PATH`, setup skips network install. |
 | `GRAWKUS_BUNDLE_ROOT` | (unset) | Terminal-Bench offline install source: unpacked Grawkus tree with `bin/`, `dist/`, and preferably `node_modules/`. |
 | `GRAWKUS_BUNDLE_TARBALL` | (unset) | Terminal-Bench offline/local install source: path to a Grawkus `.tgz` checked before the npm registry. |
 | `OPENROUTER_API_KEY`, `OPENAI_API_KEY`, `DEEPSEEK_API_KEY`, `NVIDIA_API_KEY`, `GOOGLE_API_KEY`, `GEMINI_API_KEY`, `GLM_API_KEY`, `ZHIPUAI_API_KEY` | (unset) | Provider-specific key env vars used by env-built configs. |

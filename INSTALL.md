@@ -47,7 +47,7 @@ grawkus --doctor     # install/config readiness check
 grawkus              # launch the REPL
 ```
 
-The legacy `grawkus` command is still installed as an alias for existing workflows. To uninstall later: `npm uninstall -g grawkus`.
+The legacy `cawdex` command is still installed as an alias for existing workflows. To uninstall later: `npm uninstall -g grawkus`.
 
 ### Pre-publish alternative: install from GitHub
 

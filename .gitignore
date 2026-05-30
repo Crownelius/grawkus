@@ -5,8 +5,8 @@ node_modules/
 dist/
 
 # Config (contains API keys)
-# ~/.cawdex/ is the runtime config dir, not in repo
-.cawdex/
+# ~/.grawkus/ is the runtime config dir, not in repo
+.grawkus/
 
 # OS files
 .DS_Store

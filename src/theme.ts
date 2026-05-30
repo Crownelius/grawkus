@@ -49,7 +49,8 @@ export type PaletteId =
   | 'fiery-palette'
   | 'rustic-earthy-tones'
   | 'golden-summer-fields'
-  | 'vibrant-tones';
+  | 'vibrant-tones'
+  | 'grawkus-forge';
 
 export interface PaletteMeta {
   id: PaletteId;
@@ -141,6 +142,10 @@ export const PALETTES: Record<PaletteId, ColorPalette> = {
     ['#F94144', '#F3722C', '#F8961E', '#F9844A', '#F9C74F', '#90BE6D', '#43AA8B', '#4D908E', '#577590', '#277DA1'],
     { primary: 6, secondary: 9, dim: 8, danger: 0, dangerDim: 1, warning: 4, warningDim: 2 },
   ),
+  'grawkus-forge': coolorsPalette(
+    ['#1A1A1E', '#B87333', '#8B3A3A', '#C8754B', '#D4A06A', '#4A5568', '#2D3748', '#E2C08D', '#A0522D', '#6B3A2E'],
+    { primary: 1, secondary: 7, dim: 5, danger: 2, dangerDim: 8, warning: 3, warningDim: 4 },
+  ),
 };
 
 export const PALETTE_META: Record<PaletteId, PaletteMeta> = {
@@ -156,6 +161,7 @@ export const PALETTE_META: Record<PaletteId, PaletteMeta> = {
   'rustic-earthy-tones': { id: 'rustic-earthy-tones', name: 'Rustic Earthy Tones', source: 'Coolors trending', description: 'Brown clay, warm beige, and muted olive.' },
   'golden-summer-fields': { id: 'golden-summer-fields', name: 'Golden Summer Fields', source: 'Coolors trending', description: 'Muted green and cream with a gold accent.' },
   'vibrant-tones': { id: 'vibrant-tones', name: 'Vibrant Tones', source: 'Coolors trending', description: 'Saturated warm tones into green and blue.' },
+  'grawkus-forge': { id: 'grawkus-forge', name: 'Grawkus Forge', source: 'Original', description: 'Dark forge with copper accents, rust, and muted steel.' },
 };
 
 // Active palette — mutable. Starts on the default; index.ts calls
@@ -455,6 +461,39 @@ export function formatDuration(ms: number): string {
 // per user request. Existing callers don't need to be updated, but ideally
 // would be (see src/index.ts for the canonical call site).
 export function printSplash(): void { /* removed */ }
+
+// ── Forge Header ─────────────────────────────────────────
+// Grawkus Forge ASCII art — a sturdy dwarf blacksmith with a fiery
+// red beard, handlebar mustache, and forge-hammer in hand. Rendered
+// in the forge palette (copper hair, rust beard, steel armor).
+// Disabled automatically when stdout is not a TTY (CI/piped output)
+// or in screen-reader mode.
+export function printForgeHeader(): void {
+  const copper = chalk.hex('#B87333');
+  const rust = chalk.hex('#8B3A3A');
+  const steel = chalk.hex('#4A5568');
+  const ember = chalk.hex('#E2C08D');
+  const iron = chalk.hex('#2D3748');
+  const fire = chalk.hex('#C8754B');
+  const ash = chalk.hex('#6B3A2E');
+
+  // Skip if stdout isn't a TTY — ASCII art is visual noise in piped/CI output
+  if (!process.stdout.isTTY) return;
+
+  console.log('');
+  console.log([
+    steel('         ▄▄▄███████▄▄▄        '),
+    copper('       ▄████████████████▄      '),
+    fire('      ██▀▀▀▀▀▀▀▀▀▀▀▀▀██     '),
+    copper('     ▐█▌') + ember('   ◉     ◉  ') + copper('▐█▌    ') + fire('⚒ ') + ember.bold('GRAWKUS') + fire(' FORGE ') + fire('⚒'),
+    rust('     ▐█▌') + ember('     ═══    ') + rust('▐█▌   '),
+    rust('     ▐█▌') + fire('  ═══│││═══ ') + rust('▐█▌    ') + steel('hammering code'),
+    copper('     ▐█▌') + fire('   ╲╱ ╲╱  ') + copper('▐█▌    ') + steel('into shape'),
+    rust('      ██████████████████▀      ') + steel('  with a mind for the whole repo'),
+    iron('       ▀▀▀▀▀▀▀▀▀▀▀▀▀▀        '),
+  ].join('\n'));
+  console.log('');
+}
 
 // ── Screen-reader output dispatch ───────────────────────
 // When accessibility.screenReader is enabled, every console.log / stderr

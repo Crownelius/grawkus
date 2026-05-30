@@ -23,7 +23,7 @@ tags:
 
 ## Agent Details
 
-Grawkus is a terminal coding agent system with a mind for the whole repo. It runs as a CLI, speaks OpenAI-compatible APIs, and packages adapters for Terminal-Bench, KBench, HAL, and Exgentic/Open Agent Leaderboard style evaluation. The npm package is `grawkus` and installs both the primary `grawkus` command and the legacy `grawkus` alias.
+Grawkus is a terminal coding agent system with a mind for the whole repo. It runs as a CLI, speaks OpenAI-compatible APIs, and packages adapters for Terminal-Bench, KBench, HAL, and Exgentic/Open Agent Leaderboard style evaluation. The npm package is `grawkus` and installs both the primary `grawkus` command and the legacy `cawdex` alias.
 
 This card documents the agent system. It is not an official benchmark result and does not claim leaderboard performance without official harness output.
 
@@ -96,7 +96,7 @@ Official results should be produced through Exgentic, HAL, Terminal-Bench, KBenc
 - Prior memory and replay traces can be stale or mismatched; current task evidence must override them.
 - Generic web or source research cannot prove task success without local or official verifier evidence.
 - The agent card does not substitute for official harness scoring.
-- Hosted or sandboxed benchmarks may restrict network, package install, or provider access; use pinned bundles or preinstalled `grawkus` where possible. The legacy `grawkus` alias remains supported for older images.
+- Hosted or sandboxed benchmarks may restrict network, package install, or provider access; use pinned bundles or preinstalled `grawkus` where possible. The legacy `cawdex` alias remains supported for older images.
 - Open-weight or free-tier models may show high variance on long-horizon tasks.
 
 ## How To Run

@@ -22,7 +22,7 @@ The rest of the surface:
 
 - 9 operation modes (dev, review, tdd, research, plan, debug, architect, hermes, design)
 - 130+ slash commands
-- Bundled skill library: 228 skills, 60 agents, 75 workflow commands, 19 language rule bundles (ECC v2.0)
+- Bundled skill library: 228 skills, 60 agents, 81 workflow commands, 18 language rule sets (ECC v2.0)
 - Hermes mode — recalls prior sessions before answering, parallelizes independent subtasks, distills new skills from experience
 - Zero telemetry; state in `~/.grawkus/`; MIT, TypeScript, Node 18+
 

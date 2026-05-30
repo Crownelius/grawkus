@@ -36,7 +36,7 @@ Grawkus puts the entire agent surface behind one OpenAI-compatible transport. Sw
 | OS sandbox (Seatbelt / bwrap) | yes (`/sandbox`) | no | no | no |
 | Operation modes | 9 (dev, review, tdd, research, plan, debug, architect, hermes, design) | limited | edit-focused | edit-focused |
 | Slash commands | 130+ | yes | small set | small set |
-| Bundled skill library | 228 skills, 60 agents, 75 commands (ECC v2.0) | n/a | n/a | n/a |
+| Bundled skill library | 228 skills, 60 agents, 81 commands (ECC v2.0) | n/a | n/a | n/a |
 | User-defined skills | `/skill-create`, `/evolve` | n/a | custom prompts | n/a |
 | Cross-session learning | Hermes mode | no | no | partial |
 | Voice + screen-reader | Whisper + ElevenLabs + screen-reader mode | no | no | no |
@@ -57,7 +57,7 @@ Grawkus puts the entire agent surface behind one OpenAI-compatible transport. Sw
 | `/sandbox standard\|strict` | Wrap bash tool calls in `sandbox-exec` (macOS) or `bwrap` (Linux). Independent of permission mode — defense in depth. |
 | 9 operation modes | Pick the right loop for the task — `tdd` for red-green cycles, `review` for PRs, `architect` for design passes — instead of one generic chat. |
 | Hermes mode | Recalls prior sessions before answering, models how you work, parallelizes independent subtasks, distills new skills from experience, suggests what's worth banking. |
-| Bundled ECC v2.0 | 228 skills, 60 agents, 75 workflow commands, 19 language rule bundles ship with the install. Auto-installed on first launch. |
+| Bundled ECC v2.0 | 228 skills, 60 agents, 81 workflow commands, 18 language rule sets ship with the install. Auto-installed on first launch. |
 | Voice + screen-reader | Push-to-talk Whisper dictation (`F5`), ElevenLabs TTS readout, screen-reader-friendly output mode. None of the listed competitors ship this. |
 | Persistent input box | ANSI scroll-region keeps your queued input visible while the model is streaming. Type a follow-up during a long turn; it lands as soon as the model finishes. |
 | Zero telemetry, local state | Code stays between you and the provider you chose. Nothing phones home. |

@@ -1,6 +1,6 @@
 {
   "name": "grawkus",
-  "version": "1.35.91",
+  "version": "1.36.0",
   "description": "Grawkus \u2014 terminal coding agents with a mind for the whole repo. Speaks any OpenAI-compatible API with repo-aware context, benchmark tracing, MemPalace memory, and terminal-first agent workflows.",
   "type": "module",
   "license": "MIT",
@@ -39,7 +39,8 @@
     "knowledge-graph"
   ],
   "bin": {
-    "grawkus": "bin/grawkus.js"
+    "grawkus": "bin/grawkus.js",
+    "cawdex": "bin/grawkus.js"
   },
   "files": [
     "bin/",

@@ -24,4 +24,4 @@ Agentic coding CLIs are great until you're locked to one vendor's API and pricin
 
 Current keywords are correct: `ai`, `agent`, `cli`, `coding-assistant`, `claude`, `openrouter`, `openai`, `anthropic`, `ollama`, `hermes`, `tdd`, `everything-claude-code`, `accessibility`, `voice`, `whisper`, `tts`, `screen-reader`, `dictation`, `blind`, `memory`, `mempalace`, `knowledge-graph`.
 
-Worth keeping for discovery: `nvidia`, `swarm`, `multi-agent`, `sandbox`, `grawkus` as the legacy alias.
+Worth keeping for discovery: `nvidia`, `swarm`, `multi-agent`, `sandbox`, `cawdex` as the legacy alias.

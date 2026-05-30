@@ -4,7 +4,7 @@ Adapter that plugs Grawkus into the [Terminal-Bench](https://www.tbench.ai/)
 harness for end-to-end benchmarking.
 
 **Status**: ✅ verified passing on `hello-world` (100% accuracy, 2m43s
-agent time, 0 failures) as of 2026-05-25 with the legacy grawkus 1.33.7 +
+agent time, 0 failures) as of 2026-05-25 with the legacy cawdex 1.33.7 +
 terminal-bench 0.2.18 on Windows 11 + Docker Desktop. The full v0.1.1
 dataset (~80 tasks) is runnable; the bigger task batches need a few
 hours of wall clock.
