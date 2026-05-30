@@ -68,6 +68,9 @@ describe('Smoke Tests — handleSlashCommand', () => {
     ['/openrouter-free', 'local'],
     ['/keys', 'local'],
     ['/route', 'local'],
+    ['/route analysis', 'local'],
+    ['/route verify', 'local'],
+    ['/route bogus-role', 'local'],
     // Theme & palettes
     ['/theme', 'local'],
     ['/palette', 'local'],

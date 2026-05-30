@@ -88,7 +88,7 @@ Modes change the system prompt to bias the agent toward a particular workflow.
 | `/models` | List models the provider can serve. |
 | `/provider` | Show provider name, base URL, masked key, current model. |
 | `/openai-login [status\|smoke]` | Configure Codex OAuth, show token status, or run a smoke request through the OAuth stream path. |
-| `/route` | Auto-route the **next** message to a cheaper/more-capable model based on its complexity. Single-use. |
+| `/route` | Auto-route the **next** message by optional role (`coding|analysis|review|verification`) to tune model power for the turn. Single-use. |
 
 ### 2.4 Sessions
 

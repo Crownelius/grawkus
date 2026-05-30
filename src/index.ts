@@ -57,7 +57,15 @@ import {
 } from './compaction.js';
 import { extractPatterns, printInstinctStatus, pruneExpired, listInstincts, exportInstincts, importInstincts } from './learning.js';
 import { MODES, type Mode, listModes, normalizeModeName } from './modes.js';
-import { printModelOptions, switchModel, classifyComplexity, routeModel } from './model-router.js';
+import {
+  printModelOptions,
+  switchModel,
+  classifyComplexity,
+  routeModel,
+  parseRouteRole,
+  isValidRouteRole,
+  type RouteRole,
+} from './model-router.js';
 import {
   deleteModelAlias,
   formatModelResolution,
@@ -1058,13 +1066,22 @@ function parseSlashCommand(input: string): { cmd: string; args: string } {
 // readline REPL or burning LLM tokens. Returns shape is stable contract:
 //   { handled: true }              — local command, output printed to stdout
 //   { handled: false, injectPrompt } — LLM-driven, prompt ready to send
+export interface SlashCommandResult {
+  handled: boolean;
+  shouldExit?: boolean;
+  newMessages?: Message[];
+  injectPrompt?: string;
+  turnOverride?: ModelTurnOverride | null;
+  routeRole?: RouteRole | null;
+}
+
 export function handleSlashCommand(
   input: string,
   config: GrawkusConfig,
   messages: Message[],
   session: Session,
   mode: { current: Mode },
-): { handled: boolean; shouldExit?: boolean; newMessages?: Message[]; injectPrompt?: string; turnOverride?: ModelTurnOverride | null } {
+): SlashCommandResult {
   const parsed = parseSlashCommand(input);
   const resolved = resolveCommandEntry(parsed.cmd);
   const cmd = resolved?.entry.command ?? parsed.cmd;
@@ -1119,7 +1136,7 @@ export function handleSlashCommand(
       console.log(d('  ') + c('/openai-login') + d('     — authenticate OpenAI Codex OAuth via Codex CLI'));
       console.log(d('  ') + c('/openai-login smoke') + d(' — test OAuth request + streaming'));
       console.log(d('  ') + c('/keys [add|rm]') + d('    — multi-key rotation pool (e.g. several OpenRouter accounts)'));
-      console.log(d('  ') + c('/route') + d('            — auto-route model based on next message'));
+      console.log(d('  ') + c('/route [role]') + d('       — auto-route model based on next message'));
       console.log(h('\n  ── Modes ──'));
       console.log(d('  ') + c('/mode [name]') + d('      — switch mode (dev/review/tdd/research/plan/debug/architect/sentience/design)'));
       console.log(d('  ') + c('/modes') + d('            — list all modes (read-only; use /mode <name> to switch)'));
@@ -1735,8 +1752,15 @@ export function handleSlashCommand(
     }
 
     case '/route': {
-      console.log(chalk.dim('  Auto-routing enabled for next message.'));
-      return { handled: true };
+      const role = parseRouteRole(args);
+      if (args && !isValidRouteRole(args)) {
+        console.log(chalk.yellow('  Usage: /route [fast|balanced|powerful|coding|analysis|review|verification|auto]'));
+        console.log(chalk.dim('  Shortcuts: /route quick|normal|strong|code|analyze|reviewer|verify'));
+        return { handled: true };
+      }
+      const roleLabel = role === 'auto' ? 'auto' : `role:${role}`;
+      console.log(chalk.dim(`  Auto-routing enabled for next message (${roleLabel}).`));
+      return { handled: true, routeRole: role };
     }
 
     case '/provider':
@@ -4200,7 +4224,7 @@ async function main(): Promise<void> {
     });
   }
 
-  let autoRoute = false;
+  let autoRouteRole: RouteRole | null = null;
   let nextTurnOverride: ModelTurnOverride | null = null;
   const consumeTurnConfig = (): GrawkusConfig => {
     if (!nextTurnOverride) return config;
@@ -5219,6 +5243,10 @@ async function main(): Promise<void> {
       if (result.turnOverride !== undefined) {
         nextTurnOverride = result.turnOverride;
       }
+      if (result.routeRole !== undefined) {
+        autoRouteRole = result.routeRole;
+        continue;
+      }
       syncFooter();
       if (isFooterActive()) {
         setFooterActivity('Ready', 0, null);
@@ -5236,10 +5264,6 @@ async function main(): Promise<void> {
           ALL_TOOLS.map((t) => t.name),
         );
         syncFooter();
-        continue;
-      }
-      if (trimmed === '/route') {
-        autoRoute = true;
         continue;
       }
       // Some commands inject a prompt into the conversation (e.g. /commit, /review, /tdd)
@@ -5430,14 +5454,14 @@ async function main(): Promise<void> {
     }
 
     // Auto-route model if enabled
-    if (autoRoute) {
+    if (autoRouteRole) {
       const complexity = classifyComplexity(trimmed);
-      const route = routeModel(config, complexity);
+      const route = routeModel(config, complexity, autoRouteRole);
       if (route.model !== config.model) {
         console.log(chalk.dim(`  [routing: ${route.reason}]`));
         nextTurnOverride = { model: route.model, source: 'route' };
       }
-      autoRoute = false;
+      autoRouteRole = null;
     }
 
     // Add user message and run query

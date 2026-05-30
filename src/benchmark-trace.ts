@@ -938,6 +938,9 @@ const TIME_EFFICIENCY_HIGH_SINGLE_TOOL_MS_THRESHOLD = 5 * 60_000;
 const TIME_EFFICIENCY_SLOW_TOOL_COUNT_THRESHOLD = 3;
 const HARNESS_SAFETY_SIGNAL_LIMIT = 30;
 export const BENCHMARK_INVALID_TOOL_ACTION_TOOL = '__invalid_tool_action__';
+export const BENCHMARK_PERMISSION_DECISION_TOOL = '__permission_decision__';
+
+type PermissionDecision = 'allow' | 'prompt' | 'deny';
 
 export interface SourceResearchCoverage {
   callCount: number;
@@ -1346,6 +1349,49 @@ export function makeBenchmarkInvalidToolActionEvent(opts: {
     elapsedMs: Math.max(0, Math.floor(opts.elapsedMs ?? 0)),
     inputPreview,
     outputPreview: traceOutputPreview(redactTraceText(opts.evidence), BENCHMARK_INVALID_TOOL_ACTION_TOOL, false),
+  };
+}
+
+export function makeBenchmarkPermissionDecisionEvent(opts: {
+  seq: number;
+  toolName: string;
+  policyDecision: PermissionDecision;
+  finalDecision: PermissionDecision;
+  policyReason: string;
+  policyLines: string[];
+  userInput?: string;
+  input: Record<string, unknown>;
+  elapsedMs?: number;
+}): BenchmarkTraceEvent {
+  const decisionReason = opts.finalDecision === 'prompt'
+    ? `${opts.policyDecision} (prompt required)`
+    : `${opts.finalDecision} ${opts.policyDecision === 'prompt' ? 'after user response' : ''}`;
+  const finalReason = [
+    decisionReason,
+    `policy=${opts.policyDecision}`,
+    `policyReason=${opts.policyReason || 'n/a'}`,
+    `lines=${opts.policyLines.join(' | ')}`,
+    opts.userInput ? `user=${opts.userInput}` : null,
+    `policyTool=${opts.toolName}`,
+  ].filter(Boolean).join(' | ');
+
+  return {
+    seq: opts.seq,
+    tool: BENCHMARK_PERMISSION_DECISION_TOOL,
+    target: truncate(redactTraceText(`${opts.toolName}:${opts.finalDecision}`), 240),
+    status: opts.finalDecision === 'deny' ? 'error' : 'ok',
+    verification: false,
+    elapsedMs: Math.max(0, Math.floor(opts.elapsedMs ?? 0)),
+    inputPreview: truncate(redactTraceText({
+      policyDecision: opts.policyDecision,
+      finalDecision: opts.finalDecision,
+      tool: opts.toolName,
+      policyReason: opts.policyReason,
+      policyLines: opts.policyLines,
+      userInput: opts.userInput,
+      input: opts.input,
+    }), 600),
+    outputPreview: traceOutputPreview(redactTraceText(finalReason), BENCHMARK_PERMISSION_DECISION_TOOL, false),
   };
 }
 

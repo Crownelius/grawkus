@@ -43,6 +43,7 @@ import {
   buildSourceResearchCoverage,
   countTaskContractSignals,
   makeBenchmarkInvalidToolActionEvent,
+  makeBenchmarkPermissionDecisionEvent,
   makeBenchmarkTraceEvent,
   redactTraceText,
   writeBenchmarkTrace,
@@ -1561,6 +1562,38 @@ describe('benchmark trace artifacts', () => {
     expect(quality.processDefects.map((d) => d.code)).toContain('invalid_tool_actions');
     expect(buildBenchmarkTrajectorySystemBlock(events)).toContain('invalid_actions=2 invalid_action_pct=66.67');
     expect(buildBenchmarkCompletionReminder(events)).toContain('invalid tool action(s) occurred');
+  });
+
+  it('records permission decisions in permission decision events', () => {
+    const events = [
+      makeBenchmarkPermissionDecisionEvent({
+        seq: 1,
+        toolName: 'write_file',
+        policyDecision: 'allow',
+        finalDecision: 'allow',
+        policyReason: 'read-only tool',
+        policyLines: ['tool: write_file', 'permission mode: auto'],
+        input: { file_path: 'notes.md' },
+      }),
+      makeBenchmarkPermissionDecisionEvent({
+        seq: 2,
+        toolName: 'bash',
+        policyDecision: 'prompt',
+        finalDecision: 'deny',
+        policyReason: 'destructive tool in auto mode',
+        policyLines: ['tool: bash', 'permission mode: auto'],
+        userInput: 'deny',
+        input: { command: 'rm -rf /important' },
+      }),
+    ];
+
+    expect(events[0].tool).toBe('__permission_decision__');
+    expect(events[0].status).toBe('ok');
+    expect(events[0].target).toContain('write_file:allow');
+    expect(events[0].inputPreview).toContain('policyDecision');
+    expect(events[1].status).toBe('error');
+    expect(events[1].target).toContain('bash:deny');
+    expect(events[1].outputPreview).toContain('policy=prompt');
   });
 
   it('preserves verifier output tails for count and failure evidence', () => {

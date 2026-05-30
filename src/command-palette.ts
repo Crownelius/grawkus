@@ -47,7 +47,7 @@ export const COMMAND_CATALOG: CommandEntry[] = [
   { command: '/provider', description: 'Show provider info (URL, masked key)', category: 'Model' },
   { command: '/openai-login', description: 'OpenAI Codex OAuth login, status, or smoke test', category: 'Model' },
   { command: '/keys', description: 'Multi-key rotation pool (/keys add, status, remove)', category: 'Model' },
-  { command: '/route', description: 'Auto-route to a model based on the next message', category: 'Model' },
+  { command: '/route', description: 'Auto-route to a model for the next message', category: 'Model', usage: '/route [fast|balanced|powerful|coding|analysis|review|verification]' },
 
   // ── Modes ──
   { command: '/mode', description: 'Switch mode (dev/review/tdd/research/plan/debug/benchmark/architect/sentience/design)', category: 'Modes' },

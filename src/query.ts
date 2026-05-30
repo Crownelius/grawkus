@@ -7,7 +7,7 @@ import type { Tool } from './tools/types.js';
 import { ALL_TOOLS, getToolByName } from './tools/index.js';
 import { resolveUserPath } from './tools/path-utils.js';
 import { streamChat, resetClient } from './api.js';
-import { checkPermission } from './permissions.js';
+import { checkPermission, explainPermission } from './permissions.js';
 import { buildSystemPrompt } from './system-prompt.js';
 import { runHooks } from './hooks.js';
 import { scanToolCall, printSecurityWarning } from './security.js';
@@ -49,6 +49,7 @@ import { applyAgentToolInstructions } from './agents-md.js';
 import {
   buildBenchmarkCompletionReminder,
   buildBenchmarkTrajectorySystemBlock,
+  makeBenchmarkPermissionDecisionEvent,
   makeBenchmarkInvalidToolActionEvent,
   makeBenchmarkTraceEvent,
   writeBenchmarkTrace,
@@ -2503,7 +2504,7 @@ async function executeToolCalls(
   const results: Message[] = [];
 
   for (const tc of toolCalls) {
-    const toolName = tc.function.name;
+  const toolName = tc.function.name;
     const tool = getToolByName(toolName);
 
     // ── Tool-call loop detection (error-only count) ──────
@@ -2532,6 +2533,27 @@ async function executeToolCalls(
         reason,
         evidence,
         input,
+      }));
+    };
+    const recordPermissionDecision = (
+      toolName: string,
+      policyDecision: 'allow' | 'prompt' | 'deny',
+      finalDecision: 'allow' | 'prompt' | 'deny',
+      policyReason: string,
+      policyLines: string[],
+      userInput?: string,
+      extraInput?: Record<string, unknown>,
+    ): void => {
+      if (!chainStats || !(ctx.mode === 'benchmark' || process.env.GRAWKUS_BENCHMARK_TRACE === '1')) return;
+      chainStats.benchmarkTraceEvents.push(makeBenchmarkPermissionDecisionEvent({
+        seq: chainStats.benchmarkTraceEvents.length + 1,
+        toolName,
+        policyDecision,
+        finalDecision,
+        policyReason,
+        policyLines,
+        userInput,
+        input: extraInput ? { ...extraInput } : { tool: toolName },
       }));
     };
     if (chainStats && tcFingerprint) {
@@ -2811,13 +2833,30 @@ async function executeToolCalls(
     // Y/n/always response — without this, readline's keypress listener is
     // detached and the prompt would hang forever. Re-suppress immediately
     // after so any typing during the next tool's execution is blocked.
-    inputGuard.pause();
+    const permissionExplanation = explainPermission(tool, input, ctx.config);
+    let finalPermissionDecision: 'allow' | 'prompt' | 'deny' = permissionExplanation.decision;
     let allowed: boolean;
+    inputGuard.pause();
     try {
       allowed = await checkPermission(tool, input, ctx.config, ctx.rl);
+      finalPermissionDecision = permissionExplanation.decision === 'prompt'
+        ? (allowed ? 'allow' : 'deny')
+        : permissionExplanation.decision;
     } finally {
       inputGuard.resume();
     }
+    const userInput = permissionExplanation.decision === 'prompt'
+      ? (finalPermissionDecision === 'allow' ? 'allow' : finalPermissionDecision === 'deny' ? 'deny' : undefined)
+      : undefined;
+    recordPermissionDecision(
+      toolName,
+      permissionExplanation.decision,
+      finalPermissionDecision,
+      permissionExplanation.reason,
+      permissionExplanation.lines,
+      userInput,
+      input,
+    );
     if (!allowed) {
       console.log(theme.warning(`  ${sym.warn} Denied: ${toolName}`));
       results.push({
