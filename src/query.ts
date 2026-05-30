@@ -40,6 +40,7 @@ import {
   setFooterActivity,
   setFooterCost,
   shouldUseFixedFooter,
+  updateFooter,
   writeScrollableLine,
 } from './fixed-footer.js';
 import { applyQueuedInputChunk, drainQueuedInputBytes, queuedInputBytesToText } from './prompt-buffer.js';
@@ -300,9 +301,19 @@ function startWorkingIndicator(startedAtMs: number, screenReader: boolean, turn 
 
 function ensureTurnFooterActive(ctx: QueryContext, screenReader: boolean): void {
   if (screenReader) return;
-  if (isFooterActive()) return;
   if (!shouldUseFixedFooter(ctx.config)) return;
-  activateFooter(buildFooterSnapshot(
+  if (!isFooterActive()) {
+    activateFooter(buildFooterSnapshot(
+      ctx.config,
+      ctx.mode,
+      { id: ctx.sessionId },
+      ctx.cwd,
+    ));
+    return;
+  }
+  // Footer is already active — force-refresh the snapshot and trigger
+  // a redraw so the ticker/animation state resets cleanly between turns.
+  updateFooter(buildFooterSnapshot(
     ctx.config,
     ctx.mode,
     { id: ctx.sessionId },
