@@ -47,6 +47,7 @@ export interface GrawkusConfig {
   reasoningEffort?: ReasoningEffort; // request-level reasoning effort; usually set as a one-shot override
   voice?: VoiceConfig;     // accessibility: STT (Whisper) + TTS (ElevenLabs) + screen-reader mode
   memory?: MemoryConfig;   // MemPalace-style persistent memory (wings/rooms/drawers/tunnels/KG)
+  promode?: PromodeConfig; // ProMode TILW autonomous loop + cron defaults
   sandbox?: SandboxConfig; // OS-native sandbox wrap for bash tool (Seatbelt/bwrap)
   swarm?: SwarmConfig;     // defaults for /swarm role selection and setup wizard
   footer?: FooterConfig;   // fixed-bottom terminal footer and opening prompt behavior
@@ -83,6 +84,19 @@ export interface MemoryConfig {
   enabled?: boolean;        // default true; user can opt out during setup or /memory disable
   globalScope?: boolean;    // default true — cross-project knowledge enabled
   projectScope?: boolean;   // default true — per-repo knowledge enabled
+}
+
+export type PromodeQuality = 'relaxed' | 'standard' | 'strict';
+
+export interface PromodeConfig {
+  enabled?: boolean;           // preference flag; loop still requires /promode on
+  loopDelay?: number;          // seconds between cycles (default 0.5)
+  idleBackoffMax?: number;     // max backoff seconds on idle (default 12)
+  gitSnapshotInterval?: number; // inject git status every N iterations (default 7)
+  focusRotate?: number;        // advance focus category every N iterations (default 24)
+  quality?: PromodeQuality;
+  maxTurnsPerCycle?: number;   // per-cycle tool cap; 0 = unlimited
+  retrievalLimit?: number;     // MemPalace hits per cycle (default 12)
 }
 
 // ── Voice / accessibility config ─────────────────────────

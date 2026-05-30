@@ -43,6 +43,8 @@ There are 9 modes. Briefly explain the role of each:
 - \`architect\` — system-level design
 - \`sentience\` — self-improving learning loop (recall prior memory, model the
   user, parallelize, distill skills, persist)
+- \`promode\` — autonomous ProMode (TILW: Tasks → Ideas → Likes → Wants) until
+  \`/promode stop\`; \`/task\`, \`/idea\`, \`/like\`, \`/want\`, \`/promode cron\`
 - \`design\` — UI/visual work powered by Google Stitch. Used automatically
   for any visual work; integrates generated HTML into the user's code.
   Requires \`/stitch-config\` setup. Shortcut: \`/design <task>\`.

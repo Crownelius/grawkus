@@ -83,6 +83,16 @@ const DEFAULT_CONFIG: GrawkusConfig = {
     globalScope: true,
     projectScope: true,
   },
+  promode: {
+    enabled: false,
+    loopDelay: 0.5,
+    idleBackoffMax: 12,
+    gitSnapshotInterval: 7,
+    focusRotate: 24,
+    quality: 'standard',
+    maxTurnsPerCycle: 0,
+    retrievalLimit: 12,
+  },
   // Voice / accessibility is OFF by default. ffmpeg is optional. Users opt in
   // via `/voice on` (and set the two API keys via `/voice config`). The
   // sub-blocks define what becomes active once enabled; this just primes them

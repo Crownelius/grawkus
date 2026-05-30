@@ -4,6 +4,7 @@ import type { GrawkusConfig } from './types.js';
 import { getUsageSummary } from './cost-tracker.js';
 import { formatDuration, formatTranscriptUserLine, theme } from './theme.js';
 import { getCurrentVersion } from './updater.js';
+import { getPromodeLoopDelayForFooter } from './promode/loop.js';
 
 const ANSI = {
   saveCursor: '\x1B7',
@@ -115,11 +116,14 @@ export function buildFooterSnapshot(
   session: { id: string; name?: string },
   cwd: string,
 ): FooterSnapshot {
+  let modeLabel = mode;
+  const pm = getPromodeLoopDelayForFooter(config, cwd);
+  if (pm) modeLabel = `${mode}+${pm}`;
   return {
     provider: config.provider,
     model: config.model,
     permissionMode: config.permissionMode,
-    mode,
+    mode: modeLabel,
     sessionId: session.id,
     sessionName: session.name,
     cwd,

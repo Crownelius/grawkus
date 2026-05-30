@@ -142,6 +142,7 @@ Agents are pulled from the bundled ECC harness. Each runs against an empty tool 
 | `/skills`, `/ecc-guide`, `/skill-show <name>` | Browse the bundled skill library. |
 | `/learn`, `/evolve`, `/prune` | Cross-session learning system. |
 | `/memory` | MemPalace-backed persistent memory (rooms, drawers, KG triples). |
+| `/promode` | ProMode TILW autonomous loop (`/task`, `/idea`, `/like`, `/want`, cron). Opt-in; `/promode stop` to halt. |
 | `/usage`, `/budget` | Local token and cost ledger. |
 | `/voice on\|off\|config` | Toggle dictation + TTS. |
 | `/accessibility screenReader on` | Screen-reader-friendly output. |

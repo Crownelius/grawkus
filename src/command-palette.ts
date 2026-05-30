@@ -50,8 +50,13 @@ export const COMMAND_CATALOG: CommandEntry[] = [
   { command: '/route', description: 'Auto-route to a model for the next message', category: 'Model', usage: '/route [fast|balanced|powerful|coding|analysis|review|verification]' },
 
   // ── Modes ──
-  { command: '/mode', description: 'Switch mode (dev/review/tdd/research/plan/debug/benchmark/architect/sentience/design)', category: 'Modes' },
+  { command: '/mode', description: 'Switch mode (dev/review/tdd/research/plan/debug/benchmark/architect/sentience/design/promode)', category: 'Modes' },
   { command: '/modes', description: 'List all available modes', category: 'Modes' },
+  { command: '/promode', description: 'ProMode TILW autonomous loop (on/off/stop/status/cron)', category: 'Modes', aliases: ['/pro'], usage: '/promode [on|off|stop|status|cron ...]' },
+  { command: '/task', description: 'Queue ProMode task (T priority)', category: 'Modes', usage: '/task <description>' },
+  { command: '/idea', description: 'Queue ProMode idea (I priority)', category: 'Modes', usage: '/idea <description>' },
+  { command: '/like', description: 'Queue ProMode like (L priority)', category: 'Modes', usage: '/like <description>' },
+  { command: '/want', description: 'Queue ProMode want (W priority)', category: 'Modes', usage: '/want <description>' },
   { command: '/sentience', description: 'Switch to Sentience mode (self-improving learning loop)', category: 'Modes', aliases: ['/hermes'] },
   { command: '/design', description: 'Switch to design mode (Stitch-powered UI work)', category: 'Modes' },
 

@@ -11,6 +11,7 @@ import type { Tool } from './tools/types.js';
 import { buildUserContext } from './users.js';
 import * as mempalace from './mempalace/index.js';
 import { buildAgentsInstructionsPrompt } from './agents-md.js';
+import { buildPromodeSystemOverlay } from './promode/prompts.js';
 
 function buildToolList(tools: Tool[] = ALL_TOOLS): string {
   const lines = tools.map((t) => {
@@ -167,6 +168,13 @@ export function buildSystemPrompt(
   // User context
   const userAddition = buildUserContext();
 
+  let promodeAddition = '';
+  if (mode === 'promode') {
+    try {
+      promodeAddition = '\n' + buildPromodeSystemOverlay(config, cwd) + '\n';
+    } catch { /* promode overlay is best-effort */ }
+  }
+
   return `You are ${BRAND_LOCKUP}, running in the user's shell.
 You help with software engineering tasks: writing code, fixing bugs, refactoring, explaining code, running commands, and more.
 
@@ -254,6 +262,6 @@ IMPORTANT — tool-call rules:
 - Use markdown formatting in your responses.
 - For git operations: prefer new commits over amending, never force-push without asking.
 - Respond in the same language the user writes in.
-${modeAddition}${buildDesignHint(mode)}${agentsAddition}${rulesAddition}${instinctAddition}${eccSkillAddition}${recalledMemoryAddition}${userAddition}
+${modeAddition}${promodeAddition}${buildDesignHint(mode)}${agentsAddition}${rulesAddition}${instinctAddition}${eccSkillAddition}${recalledMemoryAddition}${userAddition}
 `;
 }
