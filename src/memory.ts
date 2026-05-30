@@ -202,7 +202,8 @@ export function printMemoryStatus(): void {
 
   const byCat = new Map<string, number>();
   for (const e of entries) {
-    byCat.set(e.category, (byCat.get(e.category) || 0) + 1);
+    const cat = e.category || (e as any).scope || 'imported';
+    byCat.set(cat, (byCat.get(cat) || 0) + 1);
   }
 
   for (const [cat, count] of Array.from(byCat.entries()).sort((a, b) => b[1] - a[1])) {
@@ -211,10 +212,12 @@ export function printMemoryStatus(): void {
 
   if (entries.length > 0) {
     console.log(chalk.dim(`\n  Most accessed:`));
-    const byAccess = entries.sort((a, b) => b.accessCount - a.accessCount);
+    const byAccess = entries.sort((a, b) => (b.accessCount || 0) - (a.accessCount || 0));
     for (const entry of byAccess.slice(0, 5)) {
-      const valuePreview = entry.value.slice(0, 50).replace(/\n/g, ' ');
-      console.log(chalk.dim(`    [${entry.accessCount}x] ${entry.key}: ${valuePreview}...`));
+      const raw = entry.value || (entry as any).content || '';
+      const valuePreview = raw.slice(0, 50).replace(/\n/g, ' ');
+      const key = entry.key || (entry as any).id || 'unknown';
+      console.log(chalk.dim(`    [${entry.accessCount || 0}x] ${key}: ${valuePreview}...`));
     }
   }
   console.log();
