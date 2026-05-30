@@ -257,44 +257,35 @@ function startWorkingIndicator(startedAtMs: number, screenReader: boolean, turn 
   ];
   let frame = 0;
   let stopped = false;
-  if (isFooterActive()) {
-    setFooterActivity(messages[0], turn, startedAtMs);
-    return {
-      stop: (): void => {
-        if (stopped) return;
-        stopped = true;
-        if (isFooterActive()) setFooterActivity('Receiving response', turn, startedAtMs);
-      },
-    };
-  }
+
+  // Always start an interval-driven spinner on stdout as the reliable
+  // fallback. The footer (if active) will also render its own activity
+  // line, but this ensures the user ALWAYS sees movement regardless of
+  // footer state or Windows terminal quirks.
   const paint = (): void => {
+    if (stopped) return;
+    const elapsed = Date.now() - startedAtMs;
     const message = messages[Math.floor(frame / 8) % messages.length];
-    if (isFooterActive()) {
-      setFooterActivity(message, turn, startedAtMs);
-      frame++;
-      return;
-    }
-    const line = formatWorkingIndicatorFrame(
-      Date.now() - startedAtMs,
-      frame,
-      message,
-    );
+    const line = formatWorkingIndicatorFrame(elapsed, frame, message);
     process.stdout.write('\r\x1b[K' + theme.dim(line));
     frame++;
   };
 
   paint();
   const timer = setInterval(paint, 250);
-  // Keep this timer referenced so activity keeps animating even when the
-  // provider stream is pending in states that don't keep other refs alive.
-  // It is always cleared in stop()/finally paths.
+
+  // Also update the footer activity if it's active — keeps both surfaces in sync.
+  if (isFooterActive()) {
+    setFooterActivity(messages[0], turn, startedAtMs);
+  }
+
   return {
     stop: (): void => {
       if (stopped) return;
       stopped = true;
       clearInterval(timer);
+      process.stdout.write('\r\x1b[K');
       if (isFooterActive()) setFooterActivity('Receiving response', turn, startedAtMs);
-      else process.stdout.write('\r\x1b[K');
     },
   };
 }
