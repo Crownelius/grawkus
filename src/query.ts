@@ -79,8 +79,6 @@ const KNOWN_FLAKY_OPENROUTER_MODEL_PATTERNS = [
   'horizon-beta',
   'optimus-alpha',
   'quasar-alpha',
-  'deepseek-v4-flash',
-  'deepseek-v4-pro',
 ] as const;
 
 function envTimeoutMs(name: string, fallback: number): number {
