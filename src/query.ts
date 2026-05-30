@@ -1084,7 +1084,9 @@ export function minimumToolCallsBeforeDone(mode: Mode, env: NodeJS.ProcessEnv = 
     const parsed = Number(raw);
     if (Number.isFinite(parsed) && parsed >= 0) return Math.floor(parsed);
   }
-  return mode === 'benchmark' ? 2 : 1;
+  // Only benchmark mode enforces a minimum tool-call gate.
+  // All other modes let the model finish whenever it decides to.
+  return mode === 'benchmark' ? 2 : 0;
 }
 
 export function buildEmptyEngagementReminder(toolCallCount: number, minToolCalls: number, mode: Mode): string {
