@@ -24,6 +24,7 @@ const aliasOnlyCommands = new Set([
   '/github-digest',
   '/guide',
   '/hermes',
+  '/pro',
   '/harness-components',
   '/hooks-reset',
   '/leaderboard',

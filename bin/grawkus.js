@@ -122,6 +122,7 @@ Options:
   --output-format <text|json>        Set non-interactive output format.
   --benchmark-trace-dir <path>       Write benchmark trace artifacts.
   --openai-oauth-smoke               Test Codex OAuth auth, request, and stream parsing.
+  promode cron run [--due-only] [--job <id>]  Run ProMode cron job(s) headlessly and exit.
   --doctor                           Run install/config/benchmark readiness checks.
   --doctor-json                      Run readiness checks and print JSON.
   --doctor-no-registry               Skip the npm registry check in doctor mode.
@@ -403,6 +404,36 @@ function readFlagValue(argv, index, flag) {
     process.stdout.write(path.resolve(binDir, '..', 'resources', 'open_agent_leaderboard', 'grawkus-agent-card.md') + '\n');
     process.exit(0);
   }
+})();
+
+(() => {
+  const argv = process.argv;
+  const promodeIdx = argv.indexOf('promode');
+  if (promodeIdx < 2) return;
+  if (argv[promodeIdx + 1] !== 'cron' || argv[promodeIdx + 2] !== 'run') return;
+  process.env.GRAWKUS_PROMODE_CRON = '1';
+  process.env.GRAWKUS_NON_INTERACTIVE = '1';
+  for (let i = promodeIdx + 3; i < argv.length; i++) {
+    const a = argv[i];
+    if (a === '--due-only') {
+      process.env.GRAWKUS_PROMODE_CRON_DUE = '1';
+      argv.splice(i, 1);
+      i--;
+      continue;
+    }
+    if (a === '--job' && argv[i + 1]) {
+      process.env.GRAWKUS_PROMODE_CRON_JOB = argv[i + 1];
+      argv.splice(i, 2);
+      i--;
+      continue;
+    }
+    if (a && a.startsWith('--job=')) {
+      process.env.GRAWKUS_PROMODE_CRON_JOB = a.slice('--job='.length);
+      argv.splice(i, 1);
+      i--;
+    }
+  }
+  argv.splice(promodeIdx, 3);
 })();
 
 import('../dist/index.js');

@@ -3,7 +3,7 @@
  * Each mode injects specialized system prompt additions and behavior.
  */
 
-export type Mode = 'dev' | 'review' | 'tdd' | 'research' | 'plan' | 'debug' | 'benchmark' | 'architect' | 'sentience' | 'design';
+export type Mode = 'dev' | 'review' | 'tdd' | 'research' | 'plan' | 'debug' | 'benchmark' | 'architect' | 'sentience' | 'design' | 'promode';
 
 export interface ModeConfig {
   name: Mode;
@@ -288,6 +288,37 @@ what you bank for the next one.
 \`/instinct-export\`, \`/instinct-import\`, \`/prune\`, \`/git-patterns\`, \`/ecc-skills\`.`,
     suggestedTools: ['bash', 'read_file', 'edit_file', 'write_file', 'grep', 'glob', 'list_dir', 'web_fetch'],
     temperature: 0.4,
+  },
+
+  promode: {
+    name: 'promode',
+    label: 'ProMode (TILW)',
+    description: 'Autonomous TILW priority loop — Tasks, Ideas, Likes, Wants until /promode stop',
+    systemPromptAddition: `
+# Mode: ProMode — THE PRIORITY (TILW)
+
+You run in **ProMode**: proactive, thorough, evidence-backed work until the user stops the loop.
+
+## TILW (strict order)
+1. **T — Tasks** — \`/task\` queue and explicit user requests (always first)
+2. **I — Ideas** — \`/idea\` queue and past curiosities
+3. **L — Likes** — \`/like\` queue and inferred delight (security, docs, tests)
+4. **W — Wants** — \`/want\` queue and mutual wins (tools, workflow, health)
+
+## Work loop (every cycle)
+Understand → Explore → Plan → Execute → Verify → Report
+
+## MemPalace
+- Recall before acting: \`memory_search\` and injected memory context
+- Diary: \`diary_write\` / \`diary_read\` for agent \`promode\`
+- Store durable I/L/W facts in wing \`promode\`; do **not** store one-off task text
+
+## Commands
+\`/promode\`, \`/promode stop\`, \`/task\`, \`/idea\`, \`/like\`, \`/want\`, \`/promode cron\`
+
+Never auto-start ProMode; user must enable via \`/promode on\` or \`/mode promode\`.`,
+    suggestedTools: ['bash', 'read_file', 'edit_file', 'write_file', 'grep', 'glob', 'list_dir', 'memory_search', 'memory_add', 'diary_write', 'diary_read'],
+    temperature: 0.35,
   },
 
   design: {

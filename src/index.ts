@@ -127,6 +127,15 @@ import {
   buildPRLoopPrompt, buildDAGPrompt, buildMultiPlanPrompt, buildMultiExecutePrompt,
   buildMultiBackendPrompt, buildMultiFrontendPrompt, buildLoopOperatorPrompt,
 } from './autonomous-loops.js';
+import { handlePromodeSlash, enablePromodeMode, pausePromodeIfLeavingMode } from './promode/slash.js';
+import { PROMODE_ACTIVATE_SENTINEL, runPromodeActivationConsent } from './promode/consent.js';
+import {
+  registerPromodeReplBridge,
+  startPromodeFromRepl,
+  afterReplTurnPromode,
+} from './promode/repl-bridge.js';
+import { runHeadlessPromodeCron } from './promode/headless.js';
+import { loadPromodeState } from './promode/state.js';
 // Search-first research workflow
 import { buildSearchFirstPrompt, buildDocsLookupPrompt, buildSourceResearchPrompt } from './search-first.js';
 // Codemaps
@@ -1138,7 +1147,8 @@ export function handleSlashCommand(
       console.log(d('  ') + c('/keys [add|rm]') + d('    — multi-key rotation pool (e.g. several OpenRouter accounts)'));
       console.log(d('  ') + c('/route [role]') + d('       — auto-route model based on next message'));
       console.log(h('\n  ── Modes ──'));
-      console.log(d('  ') + c('/mode [name]') + d('      — switch mode (dev/review/tdd/research/plan/debug/architect/sentience/design)'));
+      console.log(d('  ') + c('/mode [name]') + d('      — switch mode (dev/review/tdd/research/plan/debug/architect/sentience/promode/design)'));
+      console.log(d('  ') + c('/promode [on|off|stop|cron]') + d(' — ProMode TILW loop; /task /idea /like /want'));
       console.log(d('  ') + c('/modes') + d('            — list all modes (read-only; use /mode <name> to switch)'));
       console.log(d('  ') + c('/sentience') + d('        — self-improving learning loop (alias: /hermes)'));
       console.log(d('  ') + c('/design [task]') + d('    — switch to design mode (Stitch-powered UI generation); optional task to start immediately'));
@@ -1835,9 +1845,16 @@ export function handleSlashCommand(
     // ── Mode ──────────────────────────────────────────
     case '/mode':
       if (args && normalizeModeName(args)) {
-        mode.current = normalizeModeName(args)!;
+        const nextMode = normalizeModeName(args)!;
+        if (nextMode !== 'promode') {
+          pausePromodeIfLeavingMode(nextMode, process.cwd());
+        }
+        mode.current = nextMode;
         const m = MODES[mode.current];
         console.log(chalk.green(`  Mode: ${m.label} — ${m.description}`));
+        if (nextMode === 'promode') {
+          return { handled: true, injectPrompt: PROMODE_ACTIVATE_SENTINEL };
+        }
         // Soft hint when switching mode with conversation history present.
         // Mode switches DON'T clear context, which means a previous
         // request's residue (e.g. "write me a poem") can leak into the
@@ -1862,6 +1879,25 @@ export function handleSlashCommand(
         console.log(chalk.dim(`  Current: ${mode.current} (${MODES[mode.current].description})`));
       }
       return { handled: true };
+
+    case '/promode':
+    case '/task':
+    case '/idea':
+    case '/like':
+    case '/want': {
+      const promodeResult = handlePromodeSlash(cmd, args, {
+        cwd: process.cwd(),
+        config,
+      }) ?? { handled: true };
+      if (promodeResult.injectPrompt === PROMODE_ACTIVATE_SENTINEL) {
+        return { handled: true, injectPrompt: PROMODE_ACTIVATE_SENTINEL };
+      }
+      if (promodeResult.injectPrompt) {
+        mode.current = 'promode';
+        return { handled: false, injectPrompt: promodeResult.injectPrompt };
+      }
+      return { handled: promodeResult.handled, shouldExit: promodeResult.shouldExit };
+    }
 
     // ── Sentience shorthand (/hermes remains a compatibility alias) ──
     case '/sentience':
@@ -3967,6 +4003,25 @@ async function main(): Promise<void> {
     completer: (line: string): [string[], string] => completeSlashCommandNames(line, slashCommandNames),
   });
 
+  if (process.env.GRAWKUS_PROMODE_CRON === '1') {
+    const envConfig = loadConfigFromEnv();
+    const baseConfig = envConfig ?? loadConfig();
+    const config = applyRuntimeConfigOverrides(baseConfig);
+    const jobId = process.env.GRAWKUS_PROMODE_CRON_JOB;
+    const dueOnly = process.env.GRAWKUS_PROMODE_CRON_DUE === '1';
+    const code = await runHeadlessPromodeCron({
+      config,
+      cwd: process.cwd(),
+      jobId: jobId || undefined,
+      dueOnly,
+      sessionId: 'promode-cron-headless',
+      rl,
+    });
+    try { rl.close(); } catch { /* noop */ }
+    process.exit(code);
+    return;
+  }
+
   if (process.env.GRAWKUS_OPENAI_OAUTH_SMOKE === '1') {
     const envConfig = loadConfigFromEnv();
     const baseConfig = envConfig ?? loadConfig();
@@ -5116,6 +5171,39 @@ async function main(): Promise<void> {
     }
   }
 
+  let promodeQueryInFlight = false;
+  registerPromodeReplBridge({
+    cwd: process.cwd(),
+    config,
+    rl,
+    getMessages: () => messages,
+    getMode: () => mode,
+    getSession: () => session,
+    runQuery: async (opts) => {
+      promodeQueryInFlight = true;
+      try {
+        await runQuery({ ...opts, rl });
+      } finally {
+        promodeQueryInFlight = false;
+      }
+    },
+    saveSnapshot: saveWithSnapshot,
+    hasQueuedUserInput: () => {
+      const g = globalThis as { __grawkusQueuedInput?: string };
+      return Boolean(g.__grawkusQueuedInput?.trim());
+    },
+    isQueryInFlight: () => promodeQueryInFlight,
+    consumeTurnConfig,
+    syncFooter,
+  });
+
+  const promodeState = loadPromodeState(process.cwd());
+  if (promodeState.running && !promodeState.stopped) {
+    mode.current = 'promode';
+    startPromodeFromRepl();
+    console.log(chalk.dim('  ProMode loop resumed from saved state.'));
+  }
+
   let firstInteractivePrompt = true;
 
   // Main REPL loop
@@ -5280,6 +5368,15 @@ async function main(): Promise<void> {
           }
           console.log(theme.dim('  [dictate] ') + chalk.white(transcript));
           messages.push({ role: 'user', content: transcript });
+        } else if (result.injectPrompt === PROMODE_ACTIVATE_SENTINEL) {
+          const activation = await runPromodeActivationConsent(rl, process.cwd(), session.id);
+          if (!activation.accepted) continue;
+          mode.current = 'promode';
+          enablePromodeMode({
+            cwd: process.cwd(),
+            config,
+            onStartLoop: () => startPromodeFromRepl(),
+          });
         } else if (result.injectPrompt === '__PICK_MODEL__') {
           // OpenRouter model picker — same sentinel-into-the-REPL
           // pattern as /dictate + /swarm because handleSlashCommand
@@ -5427,9 +5524,15 @@ async function main(): Promise<void> {
         await saveWithSnapshot();
         const turnConfig = consumeTurnConfig();
         updateFooter(buildFooterSnapshot(turnConfig, mode.current, session, process.cwd()));
-        await runQuery({ config: turnConfig, messages, cwd: process.cwd(), rl, sessionId: session.id, mode: mode.current });
+        promodeQueryInFlight = true;
+        try {
+          await runQuery({ config: turnConfig, messages, cwd: process.cwd(), rl, sessionId: session.id, mode: mode.current });
+        } finally {
+          promodeQueryInFlight = false;
+        }
         syncFooter();
         await saveWithSnapshot();
+        afterReplTurnPromode();
         continue;
       }
       if (result.handled) continue;
@@ -5470,18 +5573,24 @@ async function main(): Promise<void> {
 
     const turnConfig = consumeTurnConfig();
     updateFooter(buildFooterSnapshot(turnConfig, mode.current, session, process.cwd()));
-    await runQuery({
-      config: turnConfig,
-      messages,
-      cwd: process.cwd(),
-      rl,
-      sessionId: session.id,
-      mode: mode.current,
-    });
+    promodeQueryInFlight = true;
+    try {
+      await runQuery({
+        config: turnConfig,
+        messages,
+        cwd: process.cwd(),
+        rl,
+        sessionId: session.id,
+        mode: mode.current,
+      });
+    } finally {
+      promodeQueryInFlight = false;
+    }
     syncFooter();
 
     // Auto-save session
     await saveWithSnapshot();
+    afterReplTurnPromode();
 
     // Strategic compaction check
     const compactionHint = shouldSuggestCompaction(messages, 0, config);
@@ -5489,6 +5598,10 @@ async function main(): Promise<void> {
       console.log(chalk.yellow(`  ⚡ ${compactionHint.reason} (strategy: ${compactionHint.strategy}, ~${compactionHint.estimatedSavings.toLocaleString()} tokens saveable)`));
     }
   }
+
+  registerPromodeReplBridge(null);
+  const { stopPromodeLoop } = await import('./promode/loop.js');
+  stopPromodeLoop(process.cwd());
 
   // Session stop hook + memory persistence
   onSessionEnd(session.id, messages, process.cwd());

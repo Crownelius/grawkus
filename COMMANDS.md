@@ -69,11 +69,36 @@ Modes change the system prompt to bias the agent toward a particular workflow.
 | `/mode benchmark` | Benchmark | SWE-bench/Terminal-Bench-style runs: localize, patch, verify, and report harness-grade evidence. |
 | `/mode architect` | Architect | System-level design, component boundaries, trade-offs. |
 | `/mode sentience` | Sentience | Self-improving learning loop — recalls prior memory, models the user, parallelizes, distills skills, persists knowledge. |
+| `/mode promode` | ProMode | Autonomous TILW loop (Tasks → Ideas → Likes → Wants) until `/promode stop`. Same as `/promode on`. |
 | `/mode design` | Design | Stitch-powered UI generation. Agent uses Google Stitch automatically for any visual work and integrates the generated HTML into your code. Requires `/stitch-config`. |
 | `/modes` | (list-only) | Print all available modes. **Does NOT switch** — use `/mode <name>`. |
 | `/sentience` | Alias | Same as `/mode sentience`. |
 | `/hermes` | Legacy alias | Same as `/sentience`. |
 | `/design [task]` | Alias + shortcut | Switch to design mode. If `[task]` given, also kicks off the task immediately (e.g. `/design build a stock portfolio app, edgy red, no blue/green`). |
+
+### 2.2.1 ProMode (TILW)
+
+ProMode is **opt-in only** — it never auto-starts. It uses the **TILW** priority stack: **T**asks → **I**deas → **L**ikes → **W**ants. State lives in `~/.grawkus/promode/state.json`; cron jobs in `~/.grawkus/promode/cron.json`. MemPalace wing `promode` stores durable I/L/W facts; diary agent `promode` stores reflections.
+
+| Command | What it does |
+|---|---|
+| `/promode` | Status: queue counts, loop state, cron summary. |
+| `/promode on` | Enable ProMode after **cost-consent prompts** (accept each warning or `d` = don't ask again) and optional **per-run token budget**; then start the TILW loop until stop or budget. |
+| `/promode off` / `/promode stop` | Stop the loop and disable ProMode. |
+| `/pro` | Alias for `/promode`. |
+| `/task <text>` | Queue **T** (highest priority). |
+| `/idea <text>` | Queue **I** (+ optional MemPalace `promode/ideas`). |
+| `/like <text>` | Queue **L**. |
+| `/want <text>` | Queue **W**. |
+| `/promode cron add <schedule> <prompt>` | Add cron job (`30s`, `5m`, `2h`, `1d`, or `min hour dom month dow`). |
+| `/promode cron list` | List cron jobs. |
+| `/promode cron rm <id>` | Remove a job. |
+| `/promode cron enable\|disable <id>` | Toggle a job. |
+| `/promode cron export` | Print `schtasks` / crontab examples + headless command. |
+
+**Headless cron:** `grawkus promode cron run --due-only` (or `--job <id>`). Configure quality in `~/.grawkus/config.json` → `promode.quality`: `relaxed` | `standard` | `strict`.
+
+**Safety:** On `/promode on`, `/mode promode`, or toggle-on, Grawkus shows multiple **API cost warnings** — you must accept (`y`) each step or cancel; type **`d`** on any step to skip future activation warnings (`~/.grawkus/promode/safety.json`). You are then asked for a **token budget** for this run (`0` = unlimited until `/promode stop`). Every 5 loop iterations, a periodic cost re-confirm appears unless skipped. Footer shows `tok used/limit` when a budget is set. Use `/perm` and `promode.maxTurnsPerCycle` for unattended cron; set `GRAWKUS_PROMODE_SKIP_CONSENT=1` only for non-interactive automation.
 
 ### 2.3 Model & provider
 
