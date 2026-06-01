@@ -60,6 +60,7 @@ import { buildTodoStateBlock } from './tools/todo.js';
 import { buildRuntimeInfoBlock } from './runtime-info.js';
 import { buildAutoRepoMapBlock } from './codemaps.js';
 import { archiveLargeToolOutput } from './tool-output-archive.js';
+import { clearCurrentLine, paintFrame } from './animations.js';
 
 // Per-session set: once we've told the user "this model didn't emit
 // reasoning tokens" we don't repeat it on every turn. Cleared per process,
@@ -81,6 +82,7 @@ const KNOWN_FLAKY_OPENROUTER_MODEL_PATTERNS = [
   'horizon-beta',
   'optimus-alpha',
   'quasar-alpha',
+  'deepseek-v4',
 ] as const;
 
 function envTimeoutMs(name: string, fallback: number): number {
@@ -268,7 +270,7 @@ function startWorkingIndicator(startedAtMs: number, screenReader: boolean, turn 
     const elapsed = Date.now() - startedAtMs;
     const message = messages[Math.floor(frame / 8) % messages.length];
     const line = formatWorkingIndicatorFrame(elapsed, frame, message);
-    process.stdout.write('\r\x1b[K' + theme.dim(line));
+    paintFrame(theme.dim(line));
     frame++;
   };
 
@@ -285,7 +287,7 @@ function startWorkingIndicator(startedAtMs: number, screenReader: boolean, turn 
       if (stopped) return;
       stopped = true;
       clearInterval(timer);
-      process.stdout.write('\r\x1b[K');
+      clearCurrentLine();
       if (isFooterActive()) setFooterActivity('Receiving response', turn, startedAtMs);
     },
   };

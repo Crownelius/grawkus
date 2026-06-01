@@ -8,15 +8,15 @@ import {
   setPalette,
 } from '../src/theme.js';
 
-describe('Coolors palettes', () => {
+describe('theme palettes', () => {
   afterEach(() => {
     setPalette('olive-garden-feast');
   });
 
-  it('lists exactly 12 user-facing Coolors-based schemes', () => {
+  it('lists the user-facing Coolors schemes plus Grawkus Forge', () => {
     const palettes = listPalettes();
-    expect(palettes).toHaveLength(12);
-    expect(palettes.every((p) => p.source === 'Coolors trending')).toBe(true);
+    expect(palettes).toHaveLength(13);
+    expect(palettes.slice(0, 12).every((p) => p.source === 'Coolors trending')).toBe(true);
     expect(palettes.map((p) => p.id)).toEqual([
       'olive-garden-feast',
       'fiery-ocean',
@@ -30,7 +30,9 @@ describe('Coolors palettes', () => {
       'rustic-earthy-tones',
       'golden-summer-fields',
       'vibrant-tones',
+      'grawkus-forge',
     ]);
+    expect(palettes.at(-1)?.source).toBe('Original');
   });
 
   it('keeps full swatches for palette previews', () => {

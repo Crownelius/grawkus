@@ -5,7 +5,7 @@
  *   - Semantic color tokens (not raw hex everywhere)
  *   - Unicode symbols for status indicators
  *   - Clean typography with proper contrast
- *   - 12 swappable palettes sourced from Coolors trending schemes
+ *   - 12 Coolors palettes plus the Grawkus Forge brand palette
  *
  * The active palette is a module-level mutable record. setPalette() rebuilds
  * every chalk-bound token in the exported `theme` object in place, so any

@@ -5377,6 +5377,9 @@ async function main(): Promise<void> {
             config,
             onStartLoop: () => startPromodeFromRepl(),
           });
+          syncFooter();
+          await saveWithSnapshot();
+          continue;
         } else if (result.injectPrompt === '__PICK_MODEL__') {
           // OpenRouter model picker — same sentinel-into-the-REPL
           // pattern as /dictate + /swarm because handleSlashCommand

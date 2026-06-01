@@ -79,6 +79,20 @@ export function animationsEnabled(): boolean {
   return _enabled;
 }
 
+function clearLineToStart(): void {
+  if (!stdout.isTTY) return;
+  if (typeof stdout.clearLine === 'function' && typeof stdout.cursorTo === 'function') {
+    try {
+      stdout.cursorTo(0);
+      stdout.clearLine(0);
+      return;
+    } catch {
+      // Ignore and fall back to ANSI.
+    }
+  }
+  stdout.write('\r\x1b[K');
+}
+
 /**
  * Paint a frame in-place: `\r` (col 0 of current line) + `\x1b[K`
  * (clear to end of line) + the new content. No trailing newline —
@@ -88,7 +102,14 @@ export function animationsEnabled(): boolean {
  * to forcibly repaint a line even when animations are off.
  */
 export function paintFrame(text: string): void {
-  stdout.write('\r\x1b[K' + text);
+  if (stdout.isTTY) {
+    clearLineToStart();
+  }
+  stdout.write(text);
+}
+
+export function clearCurrentLine(): void {
+  clearLineToStart();
 }
 
 /**

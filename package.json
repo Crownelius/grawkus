@@ -1,6 +1,6 @@
 {
   "name": "grawkus",
-  "version": "2.0.3",
+  "version": "2.0.5",
   "description": "Grawkus — terminal coding agents with a mind for the whole repo. Speaks any OpenAI-compatible API with repo-aware context, benchmark tracing, MemPalace memory, and terminal-first agent workflows.",
   "type": "module",
   "license": "MIT",

@@ -7,13 +7,47 @@ import { getCurrentVersion } from './updater.js';
 import { getPromodeLoopDelayForFooter } from './promode/loop.js';
 
 const ANSI = {
-  saveCursor: '\x1B7',
-  restoreCursor: '\x1B8',
+  saveCursor: '\x1b[s',
+  restoreCursor: '\x1b[u',
   scrollRegion: (top: number, bottom: number) => `\x1B[${top};${bottom}r`,
   resetScrollRegion: '\x1B[r',
   moveTo: (row: number, col: number) => `\x1B[${row};${col}H`,
   clearLine: '\x1B[2K',
 };
+
+function writeMoveTo(row: number, col: number): void {
+  const out = process.stdout;
+  if (out.isTTY && typeof out.cursorTo === 'function') {
+    try {
+      out.cursorTo(Math.max(0, col - 1), Math.max(0, row - 1));
+      return;
+    } catch {
+      // Fall back to ANSI for terminals that expose cursorTo but reject it.
+    }
+  }
+  out.write(ANSI.moveTo(row, col));
+}
+
+function writeClearLine(): void {
+  const out = process.stdout;
+  if (out.isTTY && typeof out.clearLine === 'function') {
+    try {
+      out.clearLine(0);
+      return;
+    } catch {
+      // Fall back to ANSI for terminals that expose clearLine but reject it.
+    }
+  }
+  out.write(ANSI.clearLine);
+}
+
+function writeSaveCursor(): void {
+  process.stdout.write(ANSI.saveCursor);
+}
+
+function writeRestoreCursor(): void {
+  process.stdout.write(ANSI.restoreCursor);
+}
 
 const FOOTER_ROWS = 5;
 const PROMPT_PREFIX = '> ';
@@ -154,7 +188,7 @@ export function activateFooter(snapshot: FooterSnapshot): boolean {
   };
   process.stdout.write('\n');
   process.stdout.write(ANSI.scrollRegion(1, active.scrollBottom));
-  process.stdout.write(ANSI.moveTo(active.scrollBottom, 1));
+  writeMoveTo(active.scrollBottom, 1);
   syncActivityTicker();
   redraw();
   return true;
@@ -163,13 +197,13 @@ export function activateFooter(snapshot: FooterSnapshot): boolean {
 export function deactivateFooter(): void {
   if (!active) return;
   const current = active;
-  process.stdout.write(ANSI.saveCursor);
+  writeSaveCursor();
   process.stdout.write(ANSI.resetScrollRegion);
   for (let row = current.footerTop; row <= current.rows; row++) {
-    process.stdout.write(ANSI.moveTo(row, 1));
-    process.stdout.write(ANSI.clearLine);
+    writeMoveTo(row, 1);
+    writeClearLine();
   }
-  process.stdout.write(ANSI.restoreCursor);
+  writeRestoreCursor();
   active = null;
   syncActivityTicker();
 }
@@ -235,8 +269,8 @@ export function prepareFooterPrompt(): boolean {
   state.draft = '';
   resizeIfNeeded();
   redraw(false);
-  process.stdout.write(ANSI.moveTo(active.footerTop + 2, 1));
-  process.stdout.write(ANSI.clearLine);
+  writeMoveTo(active.footerTop + 2, 1);
+  writeClearLine();
   return true;
 }
 
@@ -273,7 +307,7 @@ function finishFooterPrompt(answer: string, echoSubmittedLine: boolean): void {
   if (echoSubmittedLine) {
     writeFooterSubmittedLine(answer);
   } else {
-    process.stdout.write(ANSI.moveTo(active.scrollBottom, 1));
+    writeMoveTo(active.scrollBottom, 1);
   }
   redraw();
 }
@@ -285,7 +319,7 @@ export function writeFooterSubmittedLine(answer: string): void {
     writeScrollableLine(formatTranscriptUserLine(trimmed, active.cols));
     return;
   }
-  process.stdout.write(ANSI.moveTo(active.scrollBottom, 1));
+  writeMoveTo(active.scrollBottom, 1);
 }
 
 export function writeScrollableLine(line: string): void {
@@ -293,8 +327,8 @@ export function writeScrollableLine(line: string): void {
     process.stdout.write(line + '\n');
     return;
   }
-  process.stdout.write(ANSI.moveTo(active.scrollBottom, 1));
-  process.stdout.write(ANSI.clearLine);
+  writeMoveTo(active.scrollBottom, 1);
+  writeClearLine();
   process.stdout.write(line + '\n');
 }
 
@@ -338,13 +372,13 @@ function syncActivityTicker(): void {
 function redraw(restoreCursor = true): void {
   if (!active) return;
   const lines = footerLines(active.cols);
-  if (restoreCursor) process.stdout.write(ANSI.saveCursor);
+  if (restoreCursor) writeSaveCursor();
   for (let i = 0; i < FOOTER_ROWS; i++) {
-    process.stdout.write(ANSI.moveTo(active.footerTop + i, 1));
-    process.stdout.write(ANSI.clearLine);
+    writeMoveTo(active.footerTop + i, 1);
+    writeClearLine();
     process.stdout.write(lines[i] || '');
   }
-  if (restoreCursor) process.stdout.write(ANSI.restoreCursor);
+  if (restoreCursor) writeRestoreCursor();
 }
 
 function footerLines(cols: number): string[] {

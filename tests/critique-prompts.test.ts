@@ -172,8 +172,8 @@ describe('minimumToolCallsBeforeDone', () => {
     expect(minimumToolCallsBeforeDone('benchmark', {} as NodeJS.ProcessEnv)).toBe(2);
   });
 
-  it('defaults non-benchmark modes to one concrete tool call', () => {
-    expect(minimumToolCallsBeforeDone('dev', {} as NodeJS.ProcessEnv)).toBe(1);
+  it('does not force concrete tool calls in non-benchmark modes', () => {
+    expect(minimumToolCallsBeforeDone('dev', {} as NodeJS.ProcessEnv)).toBe(0);
   });
 
   it('supports an explicit env override including zero', () => {

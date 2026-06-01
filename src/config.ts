@@ -378,6 +378,7 @@ export function applyRuntimeConfigOverrides(config: GrawkusConfig): GrawkusConfi
     import: config.import ? { ...config.import } : config.import,
     footer: config.footer ? { ...config.footer } : config.footer,
     modelAliases: config.modelAliases ? { ...config.modelAliases } : config.modelAliases,
+    promode: config.promode ? { ...config.promode } : config.promode,
   };
 
   const model = firstEnv('GRAWKUS_MODEL_OVERRIDE');
@@ -439,7 +440,7 @@ function validateConfig(config: GrawkusConfig): void {
   }
 
   // Warn on unexpected fields
-  const expectedFields = new Set(['apiKey', 'apiKeys', 'baseURL', 'model', 'modelAliases', 'fallbackModel', 'provider', 'openaiAuth', 'maxTokens', 'contextWindowTokens', 'maxTurns', 'temperature', 'permissionMode', 'alwaysAllowedTools', 'dryRun', 'theme', 'palette', 'showThinking', 'reasoningEffort', 'voice', 'memory', 'sandbox', 'swarm', 'import', 'footer']);
+  const expectedFields = new Set(['apiKey', 'apiKeys', 'baseURL', 'model', 'modelAliases', 'fallbackModel', 'provider', 'openaiAuth', 'maxTokens', 'contextWindowTokens', 'maxTurns', 'temperature', 'permissionMode', 'alwaysAllowedTools', 'dryRun', 'theme', 'palette', 'showThinking', 'reasoningEffort', 'voice', 'memory', 'promode', 'sandbox', 'swarm', 'import', 'footer']);
   for (const key in config) {
     if (!expectedFields.has(key) && !_alreadyWarnedFields.has(key)) {
       _alreadyWarnedFields.add(key);
