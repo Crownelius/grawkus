@@ -1,1 +1,0 @@
-"""grawkus packaged runtime resources."""

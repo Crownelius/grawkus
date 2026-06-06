@@ -1,2 +1,0 @@
-# Grawkus HAL adapter has no Python dependencies.
-# It shells out to the installed grawkus CLI.

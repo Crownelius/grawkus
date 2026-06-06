@@ -1,2 +1,0 @@
-# Exgentic provides the Python runtime APIs. Grawkus itself is installed
-# by setup.sh or made available on PATH by the benchmark image.

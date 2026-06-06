@@ -1,31 +1,16 @@
-# Dependencies
-node_modules/
-
-# Build output
-dist/
-
-# Config (contains API keys)
-# ~/.grawkus/ is the runtime config dir, not in repo
-.grawkus/
-
-# OS files
+/experiments/
+.venv/
+.env
+__pycache__/
+*.egg-info/
+*.pyc
 .DS_Store
-Thumbs.db
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# Logs
-*.log
-npm-debug.log*
-
-# Local backups / install helpers — not part of source
-*.bundle
-push-to-github.bat
-
-# LLM driver / smoke-test outputs — regenerable, may contain local paths
-tests/llm-drive-*.out.txt
-tests/llm-drive-*.log
+uv.lock
+.code_sources/
+jobs/
+auto-exp/
+runs/
+agents/explore_agent/*/_patched_*.yaml
+/adb_runtime/
+agents/evolve_agent/skills/agent-debugger-cli/*.whl
+/_archive/

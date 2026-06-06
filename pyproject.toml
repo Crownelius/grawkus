@@ -1,0 +1,36 @@
+[project]
+name = "grawkus"
+version = "3.0.0"
+description = "Grawkus NHE: a Grawkus-branded fork of Agentic Harness Engineering"
+readme = "README.md"
+requires-python = ">=3.13"
+license = { text = "MIT" }
+authors = [
+    { name = "Crownelius" },
+    { name = "Curry09" },
+]
+dependencies = [
+    "pyyaml>=6.0",
+    "python-dotenv>=1.0",
+    "e2b>=1.0.0",
+    "nexau @ git+https://github.com/nex-agi/NexAU.git@v0.3.9",
+    "harbor @ git+https://github.com/Curry09/harbor-LJH.git",
+    "agent_debugger_core",
+]
+
+[project.scripts]
+grawkus = "evolve:main"
+grawkus-nhe = "evolve:main"
+agentic-harness-engineering = "evolve:main"
+
+[tool.uv]
+constraint-dependencies = ["claude-agent-sdk<0.1.49"]
+
+[tool.uv.sources]
+agent_debugger_core = { path = "agents/evolve_agent/skills/agent-debugger-cli/_source" }
+
+[tool.setuptools]
+py-modules = ["evolve"]
+
+[tool.setuptools.packages.find]
+include = ["agents*"]
